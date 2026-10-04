@@ -1,0 +1,42 @@
+name: Localize Markdown Images
+
+on:
+  workflow_dispatch:          # 手动触发
+  # push:                     # 如需 push 时自动运行，取消注释
+  #   paths:
+  #     - '**.md'
+
+permissions:
+  contents: write             # 需要写权限才能 commit/push
+
+jobs:
+  localize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Download images and update Markdown
+        run: python scripts/localize_images.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add images/ *.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: localize external images to repo [skip ci]"
+            git push
+          fi
