@@ -2,24 +2,21 @@ name: Localize Markdown Images
 
 on:
   workflow_dispatch:          # 手动触发
-  # push:                     # 如需 push 时自动运行，取消注释
-  #   paths:
-  #     - '**.md'
 
 permissions:
-  contents: write             # 需要写权限才能 commit/push
+  contents: write
 
 jobs:
   localize:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04     # 明确指定，避免自动迁移带来的意外
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5   # 已支持 Node 24
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6  # 已支持 Node 24
         with:
           python-version: '3.12'
 
@@ -33,7 +30,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add images/ *.md
+          git add images/ *.md || true
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
